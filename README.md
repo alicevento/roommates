@@ -1,18 +1,25 @@
 # Roommates
 
-Este es un desafío diseñado para evaluar las habilidades en el desarrollo de un servidor con Express y PostgreSQL, así como también las capacidades para realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar) en una base de datos.
+Este proyecto consiste en crear un servidor con Node.js que sirva una interfaz HTML para el registro de gastos entre roommates. Además, se debe proporcionar una API REST que permita realizar operaciones como almacenar nuevos roommates, registrar gastos, modificar y eliminar información de gastos, entre otras funcionalidades.
 
 ## Descripción ⚙️
 
+1. Ocupar el módulo File System para la manipulación de archivos alojados en el servidor.
+2. Capturar los errores para condicionar el código a través del manejo de excepciones.
+3. Crear una ruta POST /roommate en el servidor que ejecute una función asíncrona importada de un archivo externo al del servidor (la función debe ser un módulo) para almacenar nuevos roommates con la API randomuser. El objeto correspondiente al usuario que se almacenará debe tener un id generado con el paquete UUID.
+4. Crear una API REST que contenga las siguientes rutas:
 
+   - GET /gastos: Devuelve todos los gastos almacenados en el archivo gastos.json.
+   - POST /gasto: Recibe el payload con los datos del gasto y los almacena en un archivo JSON (gastos.json).
+   - PUT /gasto: Recibe el payload de la consulta y modifica los datos almacenados en el servidor (gastos.json).
+   - DELETE /gasto: Recibe el id del gasto usando las Query Strings y lo elimina del historial de gastos (gastos.json).
+   - GET /roommates: Devuelve todos los roommates almacenados en el servidor (roommates.json). Se debe considerar recalcular y actualizar las cuentas de los roommates luego de este proceso.
+
+5. Devolver los códigos de estado HTTP correspondientes a cada situación.
 
 ## Requerimientos 🚀
 
-1. Utilizar 
-2. Usar 
-3. Servir una API RESTful en el servidor con los datos de los usuarios almacenados en PostgreSQL.
-4. Capturar los posibles errores que puedan ocurrir a través de bloques `catch` o parámetros de funciones `callbacks` para condicionar las funciones del servidor.
-5. Devolver correctamente los códigos de estado según las diferentes situaciones.
+
 
 ## Pre-requisitos 📋
 
@@ -24,18 +31,14 @@ Este es un desafío diseñado para evaluar las habilidades en el desarrollo de u
 
 ## Despliegue 📦
 
-Para desplegar este proyecto, asegúrate de tener una base de datos PostgreSQL configurada correctamente con los datos que contiene el archivo de configuración. Sigue estos pasos:
-
-1. Ejecuta el script proporcionado de nuestra base de datos para crear la base de datos y la tabla necesaria.
-2. Modifica el archivo de configuración para establecer la conexión a tu base de datos PostgreSQL según tu entorno local.
-3. Ejecuta el proyecto con el siguiente comando:
+Para desplegar este proyecto, ejecuta el servidor con el siguiente comando:
 
    nodemon index.js
 
 ## Construido con 🛠️
 
 - Node.js - Entorno de ejecución de JavaScript.
-- 
+- Express.js - Framework web para Node.js.
 
 ## Autor ✒️
 
