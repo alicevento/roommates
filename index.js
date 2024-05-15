@@ -7,7 +7,7 @@ const app = express();
 const PORT = 3000;
 const dataGastos = __dirname + '/data/gastos.json';
 
-app.listen(PORT, () => console.log(`Servidor Express iniciado en el puerto ${PORT}`));
+app.listen(PORT, () => console.log(`Servidor iniciado en el puerto ${PORT}`));
 app.use(express.json());
 
 // Función para manejar errores
@@ -121,6 +121,8 @@ app.delete('/gasto', async (req, res) => {
         }
         gastosJSON.gastos = gastos.filter((g) => g.id !== id);
         fs.writeFileSync(dataGastos, JSON.stringify(gastosJSON));
+        //Llamar cuentas para actualizar cuando se elimina
+        await editarCuentas();
         res.status(200).send(gastosJSON);
     } catch (error) {
         handleError(res, error);

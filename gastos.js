@@ -18,6 +18,7 @@ const agregarGasto = async ( roommate, descripcion, monto) => {
     // Escribir el archivo JSON con la agregacion realizada
     fs.writeFileSync(dataGastos, JSON.stringify(gastosJSON));
     console.log("Gasto agregado correctamente: ", nuevogasto);
+    return nuevogasto;
 } catch (e) {
     console.error("error al agregar el gasto: ", error.message)
 }
