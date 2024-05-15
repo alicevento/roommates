@@ -1,115 +1,129 @@
-//Carga de servidor y definicion de las rutas
-const express = require("express");
+const express = require('express');
+const fs = require('fs');
+const { agregarRoommates, consultarRommates, editarCuentas } = require('./roommates.js');
+const { consultarGastos, agregarGasto } = require('./gastos.js');
+
 const app = express();
-const port = 3000;
+const PORT = 3000;
+const dataGastos = __dirname + '/data/gastos.json';
 
-app.listen(port, () => console.log("Servidor escuchado en puerto 3000"));
-
-//Importando funcion desde el modulo consultas.js
-// const {agregar, todos, editar, eliminar, nuevaTransferencia, transferencias, obtenerSaldo} = require("./consultas/consultas.js");
-//Importando funcion de manejo de errores handleerrors.js
-const { handleErrors } = require("./errors/handleErrors.js");
-//middleware para recibir desde el front como json
+app.listen(PORT, () => console.log(`Servidor Express iniciado en el puerto ${PORT}`));
 app.use(express.json());
 
-//Ruta raiz
+// Función para manejar errores
+const handleError = (res, error) => {
+    console.log("Error interno del servidor: ", error.message);
+    res.status(500).send("Error interno del servidor: " + error.message);
+};
+
+// Ruta GET /
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
+    res.sendFile(__dirname + '/index.html', (error) => {
+        if (error) {
+            console.log("Error del servidor: ", error.message);
+            res.status(500).send("Error del servidor: " + error.message);
+        }
+    });
 });
 
-// Middleware personalizado para manejar errores
-const errorHandler = (error, req, res, next) => {
-    if (error.code) {
-      const { errorCode, status, message } = handleErrors(error.code);
-      console.error("Error:", errorCode, "-", message);
-      res.status(status).json({ error: message });
-    } else {
-      console.error("Error:", error.message);
-      res.status(500).json({ error: "Error genérico del servidor" });
+// Ruta GET /roommates
+app.get('/roommates', async (req, res) => {
+    try {
+        const roommates = await consultarRommates();
+        //Redondear los montos en la respuestas
+        roommates.roommates.forEach(roommate => {
+            roommate.debe = Math.round(roommate.debe);
+            roommate.recibe = Math.round(roommate.recibe);
+            roommate.total = Math.round(roommate.total);
+        });
+        res.status(200).send(roommates); // Envía la respuesta después de redondear los montos
+    } catch (error) {
+        handleError(res, error);
     }
-  };
+});
 
+// Ruta POST /roommate
+app.post('/roommate', async (req, res) => {
+    try {
+        const respuesta = await agregarRoommates();
+        await editarCuentas();
+        res.status(201).send(respuesta);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
 
-//Ruta /usuario POST que recibe los datos con la funcion agregar de un nuevo usuario y los almacena en la base de datos bancosolar
-// app.post("/usuario", async (req, res, next) => {
-//     const { nombre, balance } = req.body;
-//     if (!nombre || !balance) {
-//       return res.status(400).json({ mensaje: "Se deben agregar todos los datos" });
-//     }
-//     try {
-//       const usuario = await agregar(nombre, balance);
-//       res.status(201).json(usuario);
-//     } catch (error) {
-//       next(error);
-//     }
-//   });
+// Ruta GET /gastos
+app.get('/gastos', async (req, res) => {
+    try {
+        res.status(200).send(await consultarGastos());
+    } catch (error) {
+        handleError(res, error);
+    }
+});
 
-// //Ruta /usuarios GET que devuelve todos los usuarios registrados con sus balances
-// app.get("/usuarios", async (req, res, next) => {
-//     try {
-//       const usuarios = await todos();
-//       res.status(200).json(usuarios);
-//     } catch (error) {
-//       next(error);
-//     }
-//   });
+// Ruta POST /gasto
+app.post('/gasto', async (req, res) => {
+    try {
+        const { roommate, descripcion, monto } = req.body;
+        if (!roommate || !descripcion || !monto) {
+            res.status(400).send("Debe proporcionar el roommate, la descripcion y el monto");
+            return;
+        }
+        const respuesta = await agregarGasto(roommate, descripcion, monto);
+        await editarCuentas();
+        res.status(201).send(respuesta);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
 
-// //Ruta /usuario PUT que recibe los datos modificados de un usuario registrado y los actualiza
-// app.put("/usuario", async (req, res, next) => {
-//     const { id, nombre, balance } = req.body;
-//     if (!id || !nombre || !balance) {
-//       return res.status(400).json({ mensaje: "Se deben agregar todos los datos" });
-//     }
-//     try {
-//       const usuario = await editar(id, nombre, balance);
-//       res.status(200).json(usuario);
-//     } catch (error) {
-//       next(error);
-//     }
-//   });
+// Ruta PUT /gasto
+app.put('/gasto', async (req, res) => {
+    try {
+        const { id } = req.query;
+        const { roommate, descripcion, monto } = req.body;
+        if (!id || !roommate || !descripcion || !monto) {
+            res.status(400).send("Debe proporcionar un ID, roommate, descripción y monto");
+            return;
+        }
+        const gastosJSON = JSON.parse(fs.readFileSync(dataGastos, "utf8"));
+        const gastos = gastosJSON.gastos;
+        const buscarId = gastos.findIndex(g => g.id == id);
+        if (buscarId == -1) {
+            res.status(404).send("Gasto no encontrado");
+            return;
+        }
+        gastos[buscarId] = { id, roommate, descripcion, monto };
+        fs.writeFileSync(dataGastos, JSON.stringify(gastosJSON));
+        res.status(200).send(gastosJSON);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
 
-// //Ruta /usuario DELETE que recibe el id de un usuario registrado y lo elimina
-// app.delete("/usuario", async (req, res, next) => {
-//     const { id } = req.query;
-//     if (!id) {
-//       return res.status(400).json({ mensaje: "Se deben agregar todos los datos" });
-//     }
-//     try {
-//       const usuario = await eliminar(id);
-//       res.status(200).json(usuario);
-//     } catch (error) {
-//       next(error);
-//     }
-//   });
+// Ruta DELETE /gasto
+app.delete('/gasto', async (req, res) => {
+    try {
+        const { id } = req.query;
+        if (!id) {
+            res.status(400).send("Debe proporcionar un ID");
+            return;
+        }
+        const gastosJSON = JSON.parse(fs.readFileSync(dataGastos, "utf8"));
+        const gastos = gastosJSON.gastos;
+        const buscarId = gastos.findIndex(g => g.id == id);
+        if (buscarId == -1) {
+            res.status(404).send("El gasto con el ID proporcionado no existe");
+            return;
+        }
+        gastosJSON.gastos = gastos.filter((g) => g.id !== id);
+        fs.writeFileSync(dataGastos, JSON.stringify(gastosJSON));
+        res.status(200).send(gastosJSON);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
 
-// //Ruta /transferencia post la cual recibe los datos para realizar una nueva transferencia
-// app.post("/transferencia", async (req, res, next) => {
-//     const { emisor, receptor, monto } = req.body;
-//     if (!emisor || !receptor || !monto) {
-//       return res.status(400).json({ mensaje: "Se deben agregar todos los datos" });
-//     }
-//     try {
-//       const saldoEmisor = await obtenerSaldo(emisor);
-//       if (saldoEmisor < monto) {
-//         return res.status(400).json({ mensaje: "El emisor no tiene suficiente saldo para realizar la transferencia" });
-//       }
-//       const resultado = await nuevaTransferencia(emisor, receptor, monto);
-//       res.status(200).json(resultado);
-//     } catch (error) {
-//       next(error);
-//     }
-//   });
-
-// //Ruta /transferencias GET que devuelve todas las transferencias registradas
-// app.get("/transferencias", async (req, res, next) => {
-//     try {
-//       const resTransferencias = await transferencias(); 
-//       res.status(200).json(resTransferencias); 
-//     } catch (error) {
-//       next(error);
-//     }
-//   });
-
-
-//   // Aplicar el middleware de manejo de errores
-// app.use(errorHandler);
+// Ruta genérica
+app.get("*", (req, res) => res.status(404).send("Esta página no existe..."));
