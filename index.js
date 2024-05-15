@@ -1,3 +1,4 @@
+//index.js
 const express = require('express');
 const fs = require('fs');
 const { agregarRoommates, consultarRommates, editarCuentas } = require('./roommates.js');
