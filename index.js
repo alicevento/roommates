@@ -96,6 +96,8 @@ app.put('/gasto', async (req, res) => {
         }
         gastos[buscarId] = { id, roommate, descripcion, monto };
         fs.writeFileSync(dataGastos, JSON.stringify(gastosJSON));
+        //Llamar cuentas para actualizar el gasto
+        await editarCuentas();
         res.status(200).send(gastosJSON);
     } catch (error) {
         handleError(res, error);
