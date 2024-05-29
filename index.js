@@ -3,6 +3,7 @@ const express = require('express');
 const fs = require('fs');
 const { agregarRoommates, consultarRommates, editarCuentas } = require('./roommates.js');
 const { consultarGastos, agregarGasto } = require('./gastos.js');
+const cors = require('cors');
 
 const app = express();
 const PORT = 3000;
@@ -10,6 +11,7 @@ const dataGastos = __dirname + '/data/gastos.json';
 
 app.listen(PORT, () => console.log(`Servidor iniciado en el puerto ${PORT}`));
 app.use(express.json());
+// app.use(cors());
 
 // Función para manejar errores
 const handleError = (res, error) => {
@@ -18,14 +20,14 @@ const handleError = (res, error) => {
 };
 
 // Ruta GET /
-app.get("/", (req, res) => {
-    res.sendFile(__dirname + '/index.html', (error) => {
-        if (error) {
-            console.log("Error del servidor: ", error.message);
-            res.status(500).send("Error del servidor: " + error.message);
-        }
-    });
-});
+// app.get("/", (req, res) => {
+//     res.sendFile(__dirname + '/index.html', (error) => {
+//         if (error) {
+//             console.log("Error del servidor: ", error.message);
+//             res.status(500).send("Error del servidor: " + error.message);
+//         }
+//     });
+// });
 
 // Ruta GET /roommates
 app.get('/roommates', async (req, res) => {

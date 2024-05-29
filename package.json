@@ -4,13 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "Alicia Vento",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.6.8",
+    "cors": "^2.8.5",
     "express": "^4.19.2",
     "uuid": "^9.0.1"
   },
