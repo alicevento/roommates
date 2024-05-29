@@ -11,7 +11,7 @@ const dataGastos = __dirname + '/data/gastos.json';
 
 app.listen(PORT, () => console.log(`Servidor iniciado en el puerto ${PORT}`));
 app.use(express.json());
-// app.use(cors());
+app.use(cors());
 
 // Función para manejar errores
 const handleError = (res, error) => {
